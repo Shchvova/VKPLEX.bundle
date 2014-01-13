@@ -1,8 +1,10 @@
+import urllib
+import json
+
 VIDEO_PREFIX = "/video/vkplex"
 MUSIC_PREFIX = "/music/vkplex"
 PHOTOS_PREFIX = "/photos/vkplex"
 
-NAME = L('Title')
 
 # make sure to replace artwork with what you want
 # these filenames reference the example files in
@@ -20,7 +22,7 @@ def Start():
     ## see also:
     ##  http://dev.plexapp.com/docs/mod_Plugin.html
     ##  http://dev.plexapp.com/docs/Bundle.html#the-strings-directory
-    Plugin.AddPrefixHandler(VIDEO_PREFIX, VideoMainMenu, NAME, ICON, ART)
+    Plugin.AddPrefixHandler(VIDEO_PREFIX, VideoMainMenu, L('VideoTitle'), ICON, ART)
 
     ## make this plugin show up in the 'Music' section
     ## in Plex. The L() function pulls the string out of the strings
@@ -28,7 +30,7 @@ def Start():
     ## see also:
     ##  http://dev.plexapp.com/docs/mod_Plugin.html
     ##  http://dev.plexapp.com/docs/Bundle.html#the-strings-directory
-    Plugin.AddPrefixHandler(MUSIC_PREFIX, MusicMainMenu, NAME, ICON, ART)
+    Plugin.AddPrefixHandler(MUSIC_PREFIX, MusicMainMenu, L('MusicTitle'), ICON, ART)
 
     ## make this plugin show up in the 'Photos' section
     ## in Plex. The L() function pulls the string out of the strings
@@ -36,7 +38,7 @@ def Start():
     ## see also:
     ##  http://dev.plexapp.com/docs/mod_Plugin.html
     ##  http://dev.plexapp.com/docs/Bundle.html#the-strings-directory
-    Plugin.AddPrefixHandler(PHOTOS_PREFIX, PhotosMainMenu, NAME, ICON, ART)
+    Plugin.AddPrefixHandler(PHOTOS_PREFIX, PhotosMainMenu, L('PhotosTitle'), ICON, ART)
 
     Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
     Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
@@ -46,7 +48,7 @@ def Start():
     ## every single time
     ## see also:
     ##  http://dev.plexapp.com/docs/Objects.html
-    MediaContainer.title1 = NAME
+    MediaContainer.title1 = "VK"
     MediaContainer.viewGroup = "List"
     MediaContainer.art = R(ART)
     DirectoryItem.thumb = R(ICON)
@@ -57,21 +59,38 @@ def Start():
 # see:
 #  http://dev.plexapp.com/docs/Functions.html#ValidatePrefs
 def ValidatePrefs():
-    u = Prefs['username']
-    p = Prefs['password']
-    ## do some checks and return a
-    ## message container
-    if( u and p ):
-        return MessageContainer(
-            "Success",
-            "User and password provided ok"
-        )
-    else:
-        return MessageContainer(
-            "Error",
-            "You need to provide both a user and password"
-        )
+    email = Prefs['username']
+    password = Prefs['password']
+    client_id, secret, scope ="2054573", "KUPNPTTQGApLFVOVgqdx", 'friends,groups,photos,audio,video,offline'
+    if not email and not password:
+        Dict['token'] = ""
+        Dict.Save()
+        Log.Info("Logged out")
+        return MessageContainer("Success", "Logged out!")
 
+    if not email or not password:
+        return MessageContainer("Success", "Just cleaning info!")
+
+    out = {}
+    try:
+        url = urllib.urlopen("https://oauth.vk.com/token?" + urllib.urlencode({
+                "grant_type": "password",
+                "client_id": client_id,
+                "client_secret": secret,
+                "username": email,
+                "password": password,
+                "scope": scope
+            }))
+        out = json.load(url)
+        if "access_token" not in out:
+            return MessageContainer("Error", "You need to provide both a user and password")
+    except:
+        Log.Info("Unable to authorize due to exception. Invalid Login/Password?")    
+        return MessageContainer("Error", "You need to provide both a user and password")
+    Dict['token'] = out["access_token"]
+    Dict.Save()
+    Log.Info("Logged int with token: " + Dict['token'])
+    return MessageContainer("Success", "User and password provided ok")
   
 
 

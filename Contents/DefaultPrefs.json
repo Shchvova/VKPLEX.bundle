@@ -10,6 +10,7 @@
         "type": "text",
         "label": "Password",
         "default": "",
-        "option": "hidden"
+        "option": "hidden",
+        "secure":   "true"
     }
 ]

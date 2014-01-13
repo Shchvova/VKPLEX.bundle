@@ -1,7 +1,6 @@
 {
-    "Title": "VK PLEX",
-    "MusicTitle": "VK PLEX Music",
-    "VideoTitle": "VK PLEX Video",
-    "PhotosTitle": "VK PLEX Photos",
-    "ApplicationsTitle": "VK PLEX Applications"
+    "VideoTitle": "VK Video",
+    "MusicTitle": "VK Music",
+    "PhotosTitle": "VK Photos",
+    "DeleteTokenToLogOut": "Delete token To Logout"
 }
