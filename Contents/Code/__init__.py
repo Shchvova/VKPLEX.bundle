@@ -1,63 +1,22 @@
 import urllib
 import json
 
-VIDEO_PREFIX = "/video/vkplex"
-MUSIC_PREFIX = "/music/vkplex"
-PHOTOS_PREFIX = "/photos/vkplex"
-
-
-# make sure to replace artwork with what you want
-# these filenames reference the example files in
-# the Contents/Resources/ folder in the bundle
 ART  = 'art-default.jpg'
 ICON = 'icon-default.png'
 
-####################################################################################################
 
 def Start():
-
-    ## make this plugin show up in the 'Video' section
-    ## in Plex. The L() function pulls the string out of the strings
-    ## file in the Contents/Strings/ folder in the bundle
-    ## see also:
-    ##  http://dev.plexapp.com/docs/mod_Plugin.html
-    ##  http://dev.plexapp.com/docs/Bundle.html#the-strings-directory
-    Plugin.AddPrefixHandler(VIDEO_PREFIX, VideoMainMenu, L('VideoTitle'), ICON, ART)
-
-    ## make this plugin show up in the 'Music' section
-    ## in Plex. The L() function pulls the string out of the strings
-    ## file in the Contents/Strings/ folder in the bundle
-    ## see also:
-    ##  http://dev.plexapp.com/docs/mod_Plugin.html
-    ##  http://dev.plexapp.com/docs/Bundle.html#the-strings-directory
-    Plugin.AddPrefixHandler(MUSIC_PREFIX, MusicMainMenu, L('MusicTitle'), ICON, ART)
-
-    ## make this plugin show up in the 'Photos' section
-    ## in Plex. The L() function pulls the string out of the strings
-    ## file in the Contents/Strings/ folder in the bundle
-    ## see also:
-    ##  http://dev.plexapp.com/docs/mod_Plugin.html
-    ##  http://dev.plexapp.com/docs/Bundle.html#the-strings-directory
-    Plugin.AddPrefixHandler(PHOTOS_PREFIX, PhotosMainMenu, L('PhotosTitle'), ICON, ART)
-
-    Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
-    Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
-
-    ## set some defaults so that you don't have to
-    ## pass these parameters to these object types
-    ## every single time
-    ## see also:
-    ##  http://dev.plexapp.com/docs/Objects.html
+    MediaContainer.title1 = "VK"
+    MediaContainer.viewGroup = "List"
+    
+    #setting some globals for fun.
+    HTTP.CacheTime = CACHE_1HOUR
     MediaContainer.title1 = "VK"
     MediaContainer.viewGroup = "List"
     MediaContainer.art = R(ART)
     DirectoryItem.thumb = R(ICON)
     VideoItem.thumb = R(ICON)
-    
-    HTTP.CacheTime = CACHE_1HOUR
 
-# see:
-#  http://dev.plexapp.com/docs/Functions.html#ValidatePrefs
 def ValidatePrefs():
     email = Prefs['username']
     password = Prefs['password']
@@ -94,18 +53,7 @@ def ValidatePrefs():
   
 
 
-#### the rest of these are user created functions and
-#### are not reserved by the plugin framework.
-#### see: http://dev.plexapp.com/docs/Functions.html for
-#### a list of reserved functions above
-
-
-
-#
-# Example main menu referenced in the Start() method
-# for the 'Video' prefix handler
-#
-
+@handler('/video/vkplex', L('VideoTitle'))
 def VideoMainMenu():
 
     # Container acting sort of like a folder on
@@ -167,11 +115,8 @@ def VideoMainMenu():
     return dir
 
 
-#
-# Example main menu referenced in the Start() method
-# for the 'Music' prefix handler
-#
 
+@handler('/music/vkplex',  L('MusicTitle'))
 def MusicMainMenu():
 
     # Container acting sort of like a folder on
@@ -237,7 +182,7 @@ def MusicMainMenu():
 # Example main menu referenced in the Start() method
 # for the 'Photos' prefix handler
 #
-
+@handler('/photos/vkplex',  L('PhotosTitle'))
 def PhotosMainMenu():
 
     # Container acting sort of like a folder on
@@ -263,23 +208,6 @@ def PhotosMainMenu():
             )
         )
     )
-  
-    # Part of the "search" example 
-    # see also:
-    #   http://dev.plexapp.com/docs/Objects.html#InputDirectoryItem
-    dir.Append(
-        Function(
-            InputDirectoryItem(
-                SearchResults,
-                "Search title",
-                "Search subtitle",
-                summary="This lets you search stuff",
-                thumb=R(ICON),
-                art=R(ART)
-            )
-        )
-    )
-
   
     # Part of the "preferences" example 
     # see also:
