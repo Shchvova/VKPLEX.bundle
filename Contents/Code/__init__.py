@@ -9,13 +9,81 @@ def Start():
     MediaContainer.title1 = "VK"
     MediaContainer.viewGroup = "List"
     
-    #setting some globals for fun.
     HTTP.CacheTime = CACHE_1HOUR
     MediaContainer.title1 = "VK"
-    MediaContainer.viewGroup = "List"
     MediaContainer.art = R(ART)
     DirectoryItem.thumb = R(ICON)
     VideoItem.thumb = R(ICON)
+
+
+
+@handler('/video/vkplex', L('VideoTitle'))
+def VideoMainMenu():
+    oc = ObjectContainer()
+    oc.add(DirectoryObject(key=Callback(MyVideos, offset=0), title="My Videos"))
+    return oc
+
+
+
+@route('/video/vkplex/my/{offset}')
+def MyVideos(offset):
+    offset = int(offset or 0)
+    res = api('video.get', count=20, extnded=0, offset=offset)
+    count = int(res['count'])
+    #this page title: title=
+    oc = ObjectContainer(title1="My Videos, page {0} of {1}".format(1+offset/20, 1+count/20))
+
+    if offset > 0:
+        oc.add(DirectoryObject(key=Callback(MyVideos, offset=offset-20), title="Previous Page"))
+
+    for v in res["items"]:
+        url = ""
+        for k in v['files']:
+            url = v['files'][k]
+            break
+        #mo = MovieObject(title=v['title'], rating_key=v['id'], url=url )
+        #mo.add( MediaObject(parts=[PartObject(key = url)]) )
+        #oc.add(mo)
+        if 'youtube' not in url:
+            oc.add(VideoClipObject(url=url, title=v['title']))
+
+    if count > offset+20:
+        oc.add(DirectoryObject(key=Callback(MyVideos, offset=offset+20), title="Next Page"))
+
+    Log.Debug("Here is things: " + str(count))
+
+    return oc
+
+#@indirect
+#@route('/video/vkplex/play/',"url")
+#def PlayURL(url):
+#    return ObjectContainer(objects=[MovieObject(objects=[MediaObject(parts=[PartObject(key = url)])])])
+#
+
+
+
+@handler('/music/vkplex',  L('MusicTitle'))
+def MusicMainMenu():
+    oc = ObjectContainer()
+    return oc
+
+#
+# Example main menu referenced in the Start() method
+# for the 'Photos' prefix handler
+#
+@handler('/photos/vkplex',  L('PhotosTitle'))
+def PhotosMainMenu():
+    oc = ObjectContainer()
+    return oc
+
+
+#   http://dev.plexapp.com/docs/Objects.html#InputDirectoryItem
+def SearchResults(sender,query=None):
+    return MessageContainer(
+        "Not implemented",
+        "In real life, you would probably perform some search using python\nand then build a MediaContainer with items\nfor the results"
+    )
+    
 
 def ValidatePrefs():
     email = Prefs['username']
@@ -51,199 +119,9 @@ def ValidatePrefs():
     Log.Info("Logged int with token: " + Dict['token'])
     return MessageContainer("Success", "User and password provided ok")
   
-
-
-@handler('/video/vkplex', L('VideoTitle'))
-def VideoMainMenu():
-
-    # Container acting sort of like a folder on
-    # a file system containing other things like
-    # "sub-folders", videos, music, etc
-    # see:
-    #  http://dev.plexapp.com/docs/Objects.html#MediaContainer
-    dir = MediaContainer(viewGroup="InfoList")
-
-
-    # see:
-    #  http://dev.plexapp.com/docs/Objects.html#DirectoryItem
-    #  http://dev.plexapp.com/docs/Objects.html#function-objects
-    dir.Append(
-        Function(
-            DirectoryItem(
-                CallbackExample,
-                "directory item title",
-                subtitle="subtitle",
-                summary="clicking on me will call CallbackExample",
-                thumb=R(ICON),
-                art=R(ART)
-            )
-        )
-    )
-  
-    # Part of the "search" example 
-    # see also:
-    #   http://dev.plexapp.com/docs/Objects.html#InputDirectoryItem
-    dir.Append(
-        Function(
-            InputDirectoryItem(
-                SearchResults,
-                "Search title",
-                "Search subtitle",
-                summary="This lets you search stuff",
-                thumb=R(ICON),
-                art=R(ART)
-            )
-        )
-    )
-
-  
-    # Part of the "preferences" example 
-    # see also:
-    #  http://dev.plexapp.com/docs/Objects.html#PrefsItem
-    #  http://dev.plexapp.com/docs/Functions.html#CreatePrefs
-    #  http://dev.plexapp.com/docs/Functions.html#ValidatePrefs 
-    dir.Append(
-        PrefsItem(
-            title="Your preferences",
-            subtile="So you can set preferences",
-            summary="lets you set preferences",
-            thumb=R(ICON)
-        )
-    )
-
-    # ... and then return the container
-    return dir
-
-
-
-@handler('/music/vkplex',  L('MusicTitle'))
-def MusicMainMenu():
-
-    # Container acting sort of like a folder on
-    # a file system containing other things like
-    # "sub-folders", videos, music, etc
-    # see:
-    #  http://dev.plexapp.com/docs/Objects.html#MediaContainer
-    dir = MediaContainer(viewGroup="InfoList")
-
-
-    # see:
-    #  http://dev.plexapp.com/docs/Objects.html#DirectoryItem
-    #  http://dev.plexapp.com/docs/Objects.html#function-objects
-    dir.Append(
-        Function(
-            DirectoryItem(
-                CallbackExample,
-                "directory item title",
-                subtitle="subtitle",
-                summary="clicking on me will call CallbackExample",
-                thumb=R(ICON),
-                art=R(ART)
-            )
-        )
-    )
-  
-    # Part of the "search" example 
-    # see also:
-    #   http://dev.plexapp.com/docs/Objects.html#InputDirectoryItem
-    dir.Append(
-        Function(
-            InputDirectoryItem(
-                SearchResults,
-                "Search title",
-                "Search subtitle",
-                summary="This lets you search stuff",
-                thumb=R(ICON),
-                art=R(ART)
-            )
-        )
-    )
-
-  
-    # Part of the "preferences" example 
-    # see also:
-    #  http://dev.plexapp.com/docs/Objects.html#PrefsItem
-    #  http://dev.plexapp.com/docs/Functions.html#CreatePrefs
-    #  http://dev.plexapp.com/docs/Functions.html#ValidatePrefs 
-    dir.Append(
-        PrefsItem(
-            title="Your preferences",
-            subtile="So you can set preferences",
-            summary="lets you set preferences",
-            thumb=R(ICON)
-        )
-    )
-
-    # ... and then return the container
-    return dir
-
-
-#
-# Example main menu referenced in the Start() method
-# for the 'Photos' prefix handler
-#
-@handler('/photos/vkplex',  L('PhotosTitle'))
-def PhotosMainMenu():
-
-    # Container acting sort of like a folder on
-    # a file system containing other things like
-    # "sub-folders", videos, music, etc
-    # see:
-    #  http://dev.plexapp.com/docs/Objects.html#MediaContainer
-    dir = MediaContainer(viewGroup="InfoList")
-
-
-    # see:
-    #  http://dev.plexapp.com/docs/Objects.html#DirectoryItem
-    #  http://dev.plexapp.com/docs/Objects.html#function-objects
-    dir.Append(
-        Function(
-            DirectoryItem(
-                CallbackExample,
-                "directory item title",
-                subtitle="subtitle",
-                summary="clicking on me will call CallbackExample",
-                thumb=R(ICON),
-                art=R(ART)
-            )
-        )
-    )
-  
-    # Part of the "preferences" example 
-    # see also:
-    #  http://dev.plexapp.com/docs/Objects.html#PrefsItem
-    #  http://dev.plexapp.com/docs/Functions.html#CreatePrefs
-    #  http://dev.plexapp.com/docs/Functions.html#ValidatePrefs 
-    dir.Append(
-        PrefsItem(
-            title="Your preferences",
-            subtile="So you can set preferences",
-            summary="lets you set preferences",
-            thumb=R(ICON)
-        )
-    )
-
-    # ... and then return the container
-    return dir
-
-def CallbackExample(sender):
-
-    ## you might want to try making me return a MediaContainer
-    ## containing a list of DirectoryItems to see what happens =)
-
-    return MessageContainer(
-        "Not implemented",
-        "In real life, you'll make more than one callback,\nand you'll do something useful.\nsender.itemTitle=%s" % sender.itemTitle
-    )
-
-# Part of the "search" example 
-# query will contain the string that the user entered
-# see also:
-#   http://dev.plexapp.com/docs/Objects.html#InputDirectoryItem
-def SearchResults(sender,query=None):
-    return MessageContainer(
-        "Not implemented",
-        "In real life, you would probably perform some search using python\nand then build a MediaContainer with items\nfor the results"
-    )
-    
-  
+def api(api, **params):
+    f = {'access_token': Dict['token'], 'v':'5.5'}
+    f.update(params)
+    #Log.Debug("https://api.vk.com/method/" + api + "?" + urllib.urlencode(f))
+    url = urllib.urlopen("https://api.vk.com/method/" + api + "?" + urllib.urlencode(f))
+    return json.load(url)['response']
